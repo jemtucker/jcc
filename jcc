@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+INPUT_FILE="$1"
+if [[ -z "$INPUT_FILE" ]]; then
+    printf "jcc: error: no input file specified\n"
+    exit 1
+fi
+
+OUTPUT_FILE="${INPUT_FILE%.*}"
+PREPRO_FILE="${OUTPUT_FILE}.i"
+ASSEMB_FILE="${OUTPUT_FILE}.s"
+
+gcc -E -P "$INPUT_FILE" -o "$PREPRO_FILE"
+if [[ $? -ne 0 ]]; then
+    printf "jcc: error: preprocessing failed\n"
+    exit 1
+fi
+
+gcc -S -O \
+    -fno-asynchronous-unwind-tables \
+    -fcf-protection=none \
+    -pedantic -Werror -Wall \
+    "$PREPRO_FILE" -o "$ASSEMB_FILE"
+if [[ $? -ne 0 ]]; then
+    printf "jcc: error: compilation failed\n"
+    exit 1
+fi
+
+gcc "$ASSEMB_FILE" -o "$OUTPUT_FILE"
+if [[ $? -ne 0 ]]; then
+    printf "jcc: error: assembling or linking failed\n"
+    exit 1
+fi
+
+rm "$PREPRO_FILE"
+rm "$ASSEMB_FILE"
