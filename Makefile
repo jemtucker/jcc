@@ -1,5 +1,10 @@
 .tests:
 	@git clone https://github.com/nlsandler/writing-a-c-compiler-tests.git .tests
 
-test: .tests
-	@.tests/test_compiler ./jcc --chapter 1
+.PHONY: jcc
+jcc:
+	cargo build
+
+.PHONY: test
+test: .tests jcc
+	@.tests/test_compiler ./driver --chapter 1 --stage lex
