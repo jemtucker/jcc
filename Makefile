@@ -7,4 +7,4 @@ jcc:
 
 .PHONY: test
 test: .tests jcc
-	@.tests/test_compiler ./driver --chapter 1 --stage codegen
+	@.tests/test_compiler ./driver --chapter 1

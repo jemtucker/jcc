@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use clap::Parser;
 
 /// A C compiler
@@ -21,4 +23,15 @@ pub struct Cli {
     /// Stop after parsing stage
     #[arg(long = "codegen", required = false)]
     pub codegen: bool,
+}
+
+impl Cli {
+    pub fn output(&mut self) -> &str {
+        if self.output == "" {
+            let path = Path::new(&self.input).with_extension("s");
+            self.output = path.to_str().unwrap().to_owned();
+        }
+
+        &self.output
+    }
 }
