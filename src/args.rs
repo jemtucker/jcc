@@ -13,4 +13,8 @@ pub struct Cli {
     /// Stop after lexing stage
     #[arg(long = "lex", required = false)]
     pub lex: bool,
+
+    /// Stop after parsing stage
+    #[arg(long = "parse", required = false)]
+    pub parse: bool,
 }

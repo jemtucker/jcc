@@ -1,14 +1,12 @@
-use super::lexer::LexerError;
+use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
-pub enum Token {
-    KeywordInt,
-    KeywordVoid,
-    KeywordReturn,
+use super::Error;
 
-    Identifier(String),
-    ConstantString(String),
-    ConstantInt(u64),
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Type {
+    Keyword,
+    Identifier,
+    Constant,
 
     ParenOpen,
     ParenClose,
@@ -18,9 +16,28 @@ pub enum Token {
     Semicolon,
 }
 
+impl std::fmt::Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Keyword => write!(f, "KEYWORD"),
+            Self::Identifier => write!(f, "IDENTIFIER"),
+            Self::Constant => write!(f, "CONSTANT"),
+            Self::ParenOpen => write!(f, "("),
+            Self::ParenClose => write!(f, ")"),
+            Self::BraceOpen => write!(f, "{{"),
+            Self::BraceClose => write!(f, "}}"),
+            Self::Semicolon => write!(f, ";"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Token {
+    token_type: Type,
+    value: Option<String>,
+}
+
 impl Token {
-    pub(crate) const KEYWORD_INT: &'static str = "int";
-    pub(crate) const KEYWORD_VOID: &'static str = "void";
     pub(crate) const KEYWORD_RETURN: &'static str = "return";
 
     pub(crate) const PAREN_OPEN: char = '(';
@@ -29,44 +46,57 @@ impl Token {
     pub(crate) const BRACE_CLOSE: char = '}';
     pub(crate) const SEMICOLON: char = ';';
 
+    /// Create a new token with the specified type and value
+    pub fn new(token_type: Type, value: Option<String>) -> Token {
+        Token { token_type, value }
+    }
+
     /// new_from_string parses a string into a keyword, identifier or constant
     /// type token.
-    pub fn new_from_string(s: String) -> Result<Token, LexerError> {
+    pub fn new_from_string(s: String) -> Result<Token, Error> {
         let Some(first) = s.chars().next() else {
-            return Err(LexerError::UnexpectedEOF);
+            return Err(Error::UnexpectedEOF);
         };
 
         if first.is_numeric() {
-            return Self::new_from_integer_string(s);
+            if !s.chars().all(|c| c.is_numeric()) {
+                return Err(Error::InvalidToken(s));
+            }
+            return Self::new_constant(s);
         }
 
         match s.as_str() {
-            Token::KEYWORD_INT => Ok(Token::KeywordInt),
-            Token::KEYWORD_VOID => Ok(Token::KeywordVoid),
-            Token::KEYWORD_RETURN => Ok(Token::KeywordReturn),
-            _ => Ok(Token::Identifier(s)),
+            // TODO throwing away work here - be better?
+            Token::KEYWORD_RETURN => Ok(Self::new(Type::Keyword, Some(s))),
+            _ => Ok(Self::new(Type::Identifier, Some(s))),
         }
     }
 
-    pub fn new_from_integer_string(s: String) -> Result<Token, LexerError> {
-        Ok(Token::ConstantInt(s.parse::<u64>()?))
+    /// Construct a new Constant type Token
+    pub fn new_constant(s: String) -> Result<Token, Error> {
+        Ok(Self::new(Type::Constant, Some(s)))
     }
-}
 
-impl std::fmt::Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::KeywordInt => write!(f, "Keyword(int)"),
-            Self::KeywordVoid => write!(f, "Keyword(void)"),
-            Self::KeywordReturn => write!(f, "Keyword(return)"),
-            Self::Identifier(s) => write!(f, "Identifier('{}')", s),
-            Self::ConstantInt(i) => write!(f, "Constant({})", i),
-            Self::ConstantString(s) => write!(f, "Constant('{}')", s),
-            Self::ParenOpen => write!(f, "("),
-            Self::ParenClose => write!(f, ")"),
-            Self::BraceOpen => write!(f, "{{"),
-            Self::BraceClose => write!(f, "}}"),
-            Self::Semicolon => write!(f, ";"),
+    /// Return the Type of this token
+    pub fn token_type(&self) -> Type {
+        self.token_type
+    }
+
+    pub fn value(&self) -> Result<&str, Error> {
+        match &self.value {
+            Some(v) => Ok(v),
+            None => Err(Error::InvalidToken("".to_owned())),
+        }
+    }
+
+    /// Parses this tokens value to return a value of the type `F`.
+    pub fn parse_value<F: FromStr>(&self) -> Result<F, Error> {
+        match &self.value {
+            Some(v) => match FromStr::from_str(v) {
+                Ok(r) => Ok(r),
+                Err(_) => Err(Error::ParseTokenError(v.to_owned())),
+            },
+            None => Err(Error::InvalidToken("".to_owned())),
         }
     }
 }
