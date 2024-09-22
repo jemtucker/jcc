@@ -17,4 +17,8 @@ pub struct Cli {
     /// Stop after parsing stage
     #[arg(long = "parse", required = false)]
     pub parse: bool,
+
+    /// Stop after parsing stage
+    #[arg(long = "codegen", required = false)]
+    pub codegen: bool,
 }

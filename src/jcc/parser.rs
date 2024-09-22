@@ -21,8 +21,8 @@ where
     }
 
     /// Parse the tokens
-    pub fn parse(&mut self) -> Result<AST, Error> {
-        Ok(AST::new(self.parse_program()?))
+    pub fn parse(&mut self) -> Result<Program, Error> {
+        self.parse_program()
     }
 
     fn parse_program(&mut self) -> Result<Program, Error> {
