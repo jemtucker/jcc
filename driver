@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+while [[ $# -gt 1 ]]; do
+  case $1 in
+    --lex)
+      JCC_OPTIONS=$1
+      shift
+      ;;
+    --parse)
+      JCC_OPTIONS=$1
+      shift
+      ;;
+    --codegen)
+      JCC_OPTIONS=$1
+      shift
+      ;;
+    -*|--*)
+      echo "Unknown option '$1'"
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+INPUT_FILE="$1"
+if [[ -z "$INPUT_FILE" ]]; then
+    printf "driver: error: no input file specified\n"
+    exit 1
+fi
+
+OUTPUT_FILE="${INPUT_FILE%.*}"
+PREPRO_FILE="${OUTPUT_FILE}.i"
+ASSEMB_FILE="${OUTPUT_FILE}.s"
+
+gcc -E -P "$INPUT_FILE" -o "$PREPRO_FILE"
+if [[ $? -ne 0 ]]; then
+    printf "driver: error: preprocessing failed\n"
+    exit 1
+fi
+
+target/debug/jcc $JCC_OPTIONS "$PREPRO_FILE" -o "$ASSEMB_FILE"
+if [[ $? -ne 0 ]]; then
+    printf "driver: error: compilation failed\n"
+    exit 1
+fi
+
+if [[ ! -z "$JCC_OPTIONS" ]]; then
+  exit 0
+fi
+
+gcc "$ASSEMB_FILE" -o "$OUTPUT_FILE"
+if [[ $? -ne 0 ]]; then
+    printf "driver: error: assembling or linking failed\n"
+    exit 1
+fi
+
+rm "$PREPRO_FILE"
+rm "$ASSEMB_FILE"
