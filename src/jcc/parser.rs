@@ -1,6 +1,9 @@
 use super::{
-    ast::{Constant, Function, Program, Return, AST},
-    token::Type,
+    ast::{
+        Constant, Expression, ExpressionKind, Function, Program, Statement, UnaryOperator,
+        UnaryOperatorKind,
+    },
+    token::{Type, TypeVec},
     Error, Token,
 };
 
@@ -49,33 +52,98 @@ where
         Ok(Function::new(name.value()?, statement))
     }
 
-    fn parse_statement(&mut self) -> Result<Return, Error> {
+    fn parse_statement(&mut self) -> Result<Statement, Error> {
         let token = self.expect(Type::Keyword)?;
         let value = token.value()?;
         if value != "return" {
             return Err(Error::InvalidToken(value.to_owned()));
         }
 
-        let statement = Return::new(self.parse_constant()?);
+        let expr = self.parse_expression()?;
+
+        let statement = Statement::new(expr);
         self.expect(Type::Semicolon)?;
 
         Ok(statement)
     }
 
-    fn parse_constant(&mut self) -> Result<Constant, Error> {
-        Ok(Constant::new(self.expect(Type::Constant)?.parse_value()?))
+    fn parse_expression(&mut self) -> Result<Expression, Error> {
+        let next = self.next_token()?;
+        match next.token_type() {
+            Type::ParenOpen => {
+                let expr = self.parse_expression()?;
+                self.expect(Type::ParenClose)?;
+                Ok(expr)
+            }
+
+            Type::Constant => self.parse_expression_constant(next),
+
+            Type::BitwiseComp | Type::Negation | Type::Decrement => {
+                self.parse_expression_unary(next)
+            }
+
+            _ => Err(Error::UnexpectedToken {
+                exp: TypeVec(vec![
+                    Type::Constant,
+                    Type::BitwiseComp,
+                    Type::Negation,
+                    Type::Decrement,
+                ]),
+                got: next.token_type(),
+            }),
+        }
     }
 
-    fn expect(&mut self, expected: Type) -> Result<Token, Error> {
+    fn parse_expression_unary(&mut self, token: Token) -> Result<Expression, Error> {
+        let operator = match token.token_type() {
+            Type::BitwiseComp => UnaryOperatorKind::Complement,
+            Type::Negation => UnaryOperatorKind::Negate,
+
+            _ => {
+                return Err(Error::UnexpectedToken {
+                    exp: TypeVec(vec![Type::BitwiseComp, Type::Negation, Type::Decrement]),
+                    got: token.token_type(),
+                })
+            }
+        };
+
+        Ok(Expression::new(ExpressionKind::Unary(
+            UnaryOperator::new(operator),
+            Box::new(self.parse_expression()?),
+        )))
+    }
+
+    fn parse_expression_constant(&mut self, token: Token) -> Result<Expression, Error> {
+        Ok(Expression::new(ExpressionKind::Constant(
+            self.parse_constant(token)?,
+        )))
+    }
+
+    fn parse_constant(&mut self, token: Token) -> Result<Constant, Error> {
+        Ok(Constant::new(token.parse_value()?))
+    }
+
+    /// Return the next token from the input stream.
+    ///
+    /// If we reach the end of the feed `Error::UnexpectedEOF` is returned.
+    fn next_token(&mut self) -> Result<Token, Error> {
         let Some(next) = self.tokens.next() else {
             return Err(Error::UnexpectedEOF);
         };
 
-        let token = next?;
+        next
+    }
+
+    /// Return the next token from the input stream, if it matches the expected
+    /// type, otherwise return `Error::UnexpectedToken.
+    ///
+    /// If we reach the end of the feed `Error::UnexpectedEOF` is returned.
+    fn expect(&mut self, expected: Type) -> Result<Token, Error> {
+        let token = self.next_token()?;
 
         if token.token_type() != expected {
             return Err(Error::UnexpectedToken {
-                exp: expected,
+                exp: TypeVec(vec![expected]),
                 got: token.token_type(),
             });
         }

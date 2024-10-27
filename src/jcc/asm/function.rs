@@ -20,9 +20,11 @@ impl Display for Function {
 
         writeln!(f, "   .globl {}", name)?;
         writeln!(f, "{}:", name)?;
+        writeln!(f, "   pushq %rbp")?;
+        writeln!(f, "   movq %rsp, %rbp")?;
 
         for instr in &self.instructions {
-            writeln!(f, "   {}", instr)?;
+            write!(f, "{}", instr)?;
         }
 
         Ok(())

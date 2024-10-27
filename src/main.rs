@@ -2,7 +2,7 @@ use std::{fs::File, process::exit};
 
 use args::Cli;
 use clap::Parser;
-use jcc::{asm, lexer::Lexer, parser};
+use jcc::{asm, ir, lexer::Lexer, parser};
 use std::io::Write;
 
 mod args;
@@ -21,7 +21,7 @@ fn main() {
                     println!("{:?}", t);
                 }
                 Err(err) => {
-                    println!("jcc: error: {}", err);
+                    eprintln!("jcc: error: {}", err);
                     exit(1);
                 }
             }
@@ -35,17 +35,23 @@ fn main() {
     match ast {
         Ok(ast) => {
             if args.parse {
-                println!("{:?}", ast);
+                eprintln!("{:?}", ast);
                 return;
             }
 
-            let asm: asm::Program = ast.into();
-            let mut out = File::create(args.output()).unwrap();
+            let int: ir::Program = ast.into();
+            let asm: asm::Program = int.into();
 
+            if args.codegen {
+                eprintln!("{}", asm);
+                return;
+            }
+
+            let mut out = File::create(args.output()).unwrap();
             write!(out, "{}", asm).unwrap();
         }
         Err(err) => {
-            println!("jcc: error: {}", err);
+            eprintln!("jcc: error: {}", err);
             exit(1);
         }
     }

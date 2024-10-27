@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use super::Error;
 
+#[allow(unused)]
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Type {
     Keyword,
@@ -14,6 +15,11 @@ pub enum Type {
     BraceClose,
 
     Semicolon,
+
+    BitwiseComp,
+    Negation,
+    Decrement,
+    Increment,
 }
 
 impl std::fmt::Display for Type {
@@ -27,7 +33,31 @@ impl std::fmt::Display for Type {
             Self::BraceOpen => write!(f, "{{"),
             Self::BraceClose => write!(f, "}}"),
             Self::Semicolon => write!(f, ";"),
+            Self::BitwiseComp => write!(f, "~"),
+            Self::Negation => write!(f, "-"),
+            Self::Decrement => write!(f, "--"),
+            Self::Increment => write!(f, "++"),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct TypeVec(pub Vec<Type>);
+
+impl std::fmt::Display for TypeVec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut more_than_one = false;
+        for typ in &self.0 {
+            if more_than_one {
+                write!(f, "|")?;
+            } else {
+                more_than_one = true;
+            }
+
+            typ.fmt(f)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -45,6 +75,8 @@ impl Token {
     pub(crate) const BRACE_OPEN: char = '{';
     pub(crate) const BRACE_CLOSE: char = '}';
     pub(crate) const SEMICOLON: char = ';';
+    pub(crate) const TILDE: char = '~';
+    pub(crate) const HYPHEN: char = '-';
 
     /// Create a new token with the specified type and value
     pub fn new(token_type: Type, value: Option<String>) -> Token {

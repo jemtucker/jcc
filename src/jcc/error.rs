@@ -1,4 +1,7 @@
-use super::{token::Type, utf8::Utf8ReadError};
+use super::{
+    token::{Type, TypeVec},
+    utf8::Utf8ReadError,
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -20,8 +23,8 @@ pub enum Error {
     #[error("Invalid token: {0}")]
     InvalidToken(String),
 
-    #[error("Unexpected token: expected {exp} but got {got}")]
-    UnexpectedToken { exp: Type, got: Type },
+    #[error("Unexpected token: expected '{exp}' but got {got}")]
+    UnexpectedToken { exp: TypeVec, got: Type },
 
     #[error("Unexpected token: expected EOF but got {0}")]
     UnexpectedExtraToken(Type),

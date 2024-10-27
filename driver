@@ -10,12 +10,12 @@ while [[ $# -gt 1 ]]; do
       JCC_OPTIONS=$1
       shift
       ;;
-    --codegen)
-      JCC_OPTIONS=$1
+    --codegen|--tacky)
+      JCC_OPTIONS=--codegen
       shift
       ;;
     -*|--*)
-      echo "Unknown option '$1'"
+      echo "Unknown option '$1'" >&2
       exit 1
       ;;
     *)
@@ -26,7 +26,7 @@ done
 
 INPUT_FILE="$1"
 if [[ -z "$INPUT_FILE" ]]; then
-    printf "driver: error: no input file specified\n"
+    printf "driver: error: no input file specified\n" >&2
     exit 1
 fi
 
@@ -36,13 +36,13 @@ ASSEMB_FILE="${OUTPUT_FILE}.s"
 
 gcc -E -P "$INPUT_FILE" -o "$PREPRO_FILE"
 if [[ $? -ne 0 ]]; then
-    printf "driver: error: preprocessing failed\n"
+    printf "driver: error: preprocessing failed\n" >&2
     exit 1
 fi
 
 target/debug/jcc $JCC_OPTIONS "$PREPRO_FILE" -o "$ASSEMB_FILE"
 if [[ $? -ne 0 ]]; then
-    printf "driver: error: compilation failed\n"
+    printf "driver: error: compilation failed\n" >&2
     exit 1
 fi
 
@@ -52,7 +52,7 @@ fi
 
 gcc "$ASSEMB_FILE" -o "$OUTPUT_FILE"
 if [[ $? -ne 0 ]]; then
-    printf "driver: error: assembling or linking failed\n"
+    printf "driver: error: assembling or linking failed\n" >&2
     exit 1
 fi
 
