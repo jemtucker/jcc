@@ -1,9 +1,11 @@
 mod constant;
+mod expression;
 mod function;
 mod program;
-mod statement_return;
+mod statement;
 
 pub use constant::Constant;
+pub use expression::Expression;
 pub use function::Function;
 pub use program::Program;
-pub use statement_return::Return;
+pub use statement::Statement;

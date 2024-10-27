@@ -1,16 +1,16 @@
 use crate::jcc::asm;
 
-use super::Return;
+use super::Statement;
 
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Function {
     name: String,
-    body: Return,
+    body: Statement,
 }
 
 impl Function {
-    pub fn new(name: &str, body: Return) -> Function {
+    pub fn new(name: &str, body: Statement) -> Function {
         Function {
             name: name.to_owned(),
             body,

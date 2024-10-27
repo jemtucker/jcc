@@ -1,5 +1,5 @@
 use super::{
-    ast::{Constant, Function, Program, Return},
+    ast::{Constant, Expression, Function, Program, Statement},
     token::Type,
     Error, Token,
 };
@@ -49,14 +49,15 @@ where
         Ok(Function::new(name.value()?, statement))
     }
 
-    fn parse_statement(&mut self) -> Result<Return, Error> {
+    fn parse_statement(&mut self) -> Result<Statement, Error> {
         let token = self.expect(Type::Keyword)?;
         let value = token.value()?;
         if value != "return" {
             return Err(Error::InvalidToken(value.to_owned()));
         }
 
-        let statement = Return::new(self.parse_constant()?);
+        let expr = Expression::new(self.parse_constant()?);
+        let statement = Statement::new(expr);
         self.expect(Type::Semicolon)?;
 
         Ok(statement)
