@@ -76,6 +76,20 @@ impl<R: std::io::Read> Lexer<R> {
                 Ok(Token::new(Type::Semicolon, None))
             }
 
+            Token::TILDE => {
+                self.consume();
+                Ok(Token::new(Type::BitwiseComp, None))
+            }
+
+            Token::HYPHEN => {
+                next = self.read()?;
+                if next == Token::HYPHEN {
+                    Ok(Token::new(Type::Decrement, None))
+                } else {
+                    Ok(Token::new(Type::Negation, None))
+                }
+            }
+
             _ => {
                 let mut buf = String::new();
                 while next.is_alphanumeric() {
@@ -167,6 +181,66 @@ mod test {
                 Token::new(Type::ParenClose, None),
                 Token::new(Type::BraceOpen, None),
                 Token::new(Type::Keyword, Some("return".to_owned())),
+                Token::new(Type::Constant, Some("1".to_owned())),
+                Token::new(Type::Semicolon, None),
+                Token::new(Type::BraceClose, None),
+            ],
+        )
+    }
+
+    #[test]
+    fn test_bitwise_comp() {
+        test_lexer(
+            "int main(void)\n{\n\treturn ~1;\n}",
+            vec![
+                Token::new(Type::Identifier, Some("int".to_owned())),
+                Token::new(Type::Identifier, Some("main".to_owned())),
+                Token::new(Type::ParenOpen, None),
+                Token::new(Type::Identifier, Some("void".to_owned())),
+                Token::new(Type::ParenClose, None),
+                Token::new(Type::BraceOpen, None),
+                Token::new(Type::Keyword, Some("return".to_owned())),
+                Token::new(Type::BitwiseComp, None),
+                Token::new(Type::Constant, Some("1".to_owned())),
+                Token::new(Type::Semicolon, None),
+                Token::new(Type::BraceClose, None),
+            ],
+        )
+    }
+
+    #[test]
+    fn test_negate() {
+        test_lexer(
+            "int main(void)\n{\n\treturn -1;\n}",
+            vec![
+                Token::new(Type::Identifier, Some("int".to_owned())),
+                Token::new(Type::Identifier, Some("main".to_owned())),
+                Token::new(Type::ParenOpen, None),
+                Token::new(Type::Identifier, Some("void".to_owned())),
+                Token::new(Type::ParenClose, None),
+                Token::new(Type::BraceOpen, None),
+                Token::new(Type::Keyword, Some("return".to_owned())),
+                Token::new(Type::Negation, None),
+                Token::new(Type::Constant, Some("1".to_owned())),
+                Token::new(Type::Semicolon, None),
+                Token::new(Type::BraceClose, None),
+            ],
+        )
+    }
+
+    #[test]
+    fn test_decrement() {
+        test_lexer(
+            "int main(void)\n{\n\treturn 1--;\n}",
+            vec![
+                Token::new(Type::Identifier, Some("int".to_owned())),
+                Token::new(Type::Identifier, Some("main".to_owned())),
+                Token::new(Type::ParenOpen, None),
+                Token::new(Type::Identifier, Some("void".to_owned())),
+                Token::new(Type::ParenClose, None),
+                Token::new(Type::BraceOpen, None),
+                Token::new(Type::Keyword, Some("return".to_owned())),
+                Token::new(Type::Decrement, None),
                 Token::new(Type::Constant, Some("1".to_owned())),
                 Token::new(Type::Semicolon, None),
                 Token::new(Type::BraceClose, None),

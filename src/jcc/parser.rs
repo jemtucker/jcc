@@ -1,5 +1,5 @@
 use super::{
-    ast::{Constant, Function, Program, Return, AST},
+    ast::{Constant, Function, Program, Return},
     token::Type,
     Error, Token,
 };
