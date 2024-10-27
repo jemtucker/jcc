@@ -1,3 +1,5 @@
+export RUST_BACKTRACE ?= 1
+
 .tests:
 	@git clone https://github.com/nlsandler/writing-a-c-compiler-tests.git .tests
 
@@ -11,7 +13,7 @@ test_cargo:
 
 .PHONY: test_compiler
 test_compiler: .tests jcc
-	@.tests/test_compiler ./driver --chapter 2 --stage parse
+	@.tests/test_compiler ./driver --chapter 2
 
 .PHONY: test
 test: test_compiler
