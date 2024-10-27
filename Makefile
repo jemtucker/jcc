@@ -5,6 +5,13 @@
 jcc:
 	cargo build
 
+.PHONY: test_cargo
+test_cargo:
+	cargo test
+
+.PHONY: test_compiler
+test_compiler: .tests jcc
+	@.tests/test_compiler ./driver --chapter 2 --stage parse
+
 .PHONY: test
-test: .tests jcc
-	@.tests/test_compiler ./driver --chapter 2 --stage lex
+test: test_compiler

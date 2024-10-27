@@ -1,6 +1,6 @@
 use crate::jcc::asm::{Instruction, Operand};
 
-use super::Constant;
+use super::{unary_operator::UnaryOperator, Constant};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -9,10 +9,8 @@ pub struct Expression {
 }
 
 impl Expression {
-    pub fn new(constant: Constant) -> Expression {
-        Expression {
-            kind: ExpressionKind::Constant(constant),
-        }
+    pub fn new(kind: ExpressionKind) -> Expression {
+        Expression { kind }
     }
 }
 
@@ -25,6 +23,7 @@ impl Into<Vec<Instruction>> for Expression {
 #[derive(Debug)]
 pub enum ExpressionKind {
     Constant(Constant),
+    Unary(UnaryOperator, Box<Expression>),
 }
 
 impl Into<Vec<Instruction>> for ExpressionKind {
@@ -34,6 +33,8 @@ impl Into<Vec<Instruction>> for ExpressionKind {
                 src: Operand::Imm(c.value()),
                 dst: Operand::Register,
             }],
+
+            Self::Unary(_, _) => unimplemented!(),
         }
     }
 }

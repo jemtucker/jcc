@@ -84,6 +84,7 @@ impl<R: std::io::Read> Lexer<R> {
             Token::HYPHEN => {
                 next = self.read()?;
                 if next == Token::HYPHEN {
+                    self.consume();
                     Ok(Token::new(Type::Decrement, None))
                 } else {
                     Ok(Token::new(Type::Negation, None))
@@ -240,8 +241,8 @@ mod test {
                 Token::new(Type::ParenClose, None),
                 Token::new(Type::BraceOpen, None),
                 Token::new(Type::Keyword, Some("return".to_owned())),
-                Token::new(Type::Decrement, None),
                 Token::new(Type::Constant, Some("1".to_owned())),
+                Token::new(Type::Decrement, None),
                 Token::new(Type::Semicolon, None),
                 Token::new(Type::BraceClose, None),
             ],

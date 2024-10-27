@@ -41,6 +41,26 @@ impl std::fmt::Display for Type {
     }
 }
 
+#[derive(Debug)]
+pub struct TypeVec(pub Vec<Type>);
+
+impl std::fmt::Display for TypeVec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut more_than_one = false;
+        for typ in &self.0 {
+            if more_than_one {
+                write!(f, "|")?;
+            } else {
+                more_than_one = true;
+            }
+
+            typ.fmt(f)?;
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Token {
     token_type: Type,

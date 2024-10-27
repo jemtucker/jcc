@@ -21,7 +21,7 @@ fn main() {
                     println!("{:?}", t);
                 }
                 Err(err) => {
-                    println!("jcc: error: {}", err);
+                    eprintln!("jcc: error: {}", err);
                     exit(1);
                 }
             }
@@ -45,7 +45,7 @@ fn main() {
             write!(out, "{}", asm).unwrap();
         }
         Err(err) => {
-            println!("jcc: error: {}", err);
+            eprintln!("jcc: error: {}", err);
             exit(1);
         }
     }
