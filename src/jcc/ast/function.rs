@@ -1,4 +1,4 @@
-use crate::jcc::asm;
+use crate::jcc::ir;
 
 use super::Statement;
 
@@ -18,8 +18,8 @@ impl Function {
     }
 }
 
-impl Into<asm::Function> for Function {
-    fn into(self) -> asm::Function {
-        asm::Function::new(self.name, self.body.into())
+impl Into<ir::Function> for Function {
+    fn into(self) -> ir::Function {
+        ir::Function::new(self.name, self.body.into())
     }
 }

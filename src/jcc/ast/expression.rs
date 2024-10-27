@@ -1,6 +1,8 @@
-use crate::jcc::asm::{Instruction, Operand};
+use std::sync::atomic::{AtomicU64, Ordering};
 
-use super::{unary_operator::UnaryOperator, Constant};
+use crate::jcc::ir::{self, Instruction, Value};
+
+use super::{Constant, UnaryOperator};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -12,11 +14,20 @@ impl Expression {
     pub fn new(kind: ExpressionKind) -> Expression {
         Expression { kind }
     }
-}
 
-impl Into<Vec<Instruction>> for Expression {
-    fn into(self) -> Vec<Instruction> {
-        self.kind.into()
+    pub fn emit_ir(&self, instr: &mut Vec<Instruction>) -> Value {
+        match &self.kind {
+            ExpressionKind::Constant(c) => Value::Constant(c.value()),
+            ExpressionKind::Unary(op, expr) => {
+                let src = expr.emit_ir(instr);
+                let dst = Value::Var(make_temp());
+                let opr: ir::UnaryOperator = op.as_ir_op();
+
+                instr.push(Instruction::Unary(opr, src, dst.clone()));
+
+                dst
+            }
+        }
     }
 }
 
@@ -26,15 +37,8 @@ pub enum ExpressionKind {
     Unary(UnaryOperator, Box<Expression>),
 }
 
-impl Into<Vec<Instruction>> for ExpressionKind {
-    fn into(self) -> Vec<Instruction> {
-        match self {
-            Self::Constant(c) => vec![Instruction::Mov {
-                src: Operand::Imm(c.value()),
-                dst: Operand::Register,
-            }],
+static NEXT_ID: AtomicU64 = AtomicU64::new(0);
 
-            Self::Unary(_, _) => unimplemented!(),
-        }
-    }
+fn make_temp() -> String {
+    format!("tmp.{}", NEXT_ID.fetch_add(1, Ordering::Relaxed))
 }

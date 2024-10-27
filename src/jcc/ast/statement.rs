@@ -1,4 +1,4 @@
-use crate::jcc::asm::Instruction;
+use crate::jcc::ir::Instruction;
 
 use super::expression::Expression;
 
@@ -31,8 +31,11 @@ impl Into<Vec<Instruction>> for StatementKind {
     fn into(self) -> Vec<Instruction> {
         match self {
             Self::Return(e) => {
-                let mut instr: Vec<Instruction> = e.into();
-                instr.push(Instruction::Ret);
+                let mut instr = Vec::<Instruction>::default();
+                let dst = e.emit_ir(&mut instr);
+
+                instr.push(Instruction::Return(dst));
+
                 instr
             }
         }

@@ -20,7 +20,7 @@ pub struct Cli {
     #[arg(long = "parse", required = false)]
     pub parse: bool,
 
-    /// Stop after parsing stage
+    /// Stop after tacky codegen stage
     #[arg(long = "codegen", required = false)]
     pub codegen: bool,
 }
