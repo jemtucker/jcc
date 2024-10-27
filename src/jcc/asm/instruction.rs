@@ -15,16 +15,18 @@ impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Instruction::Mov { src, dst } => {
-                write!(f, "movl {}, {}", src, dst)
+                writeln!(f, "   movl {}, {}", src, dst)
             }
             Instruction::Unary(op, operand) => {
-                write!(f, "{} {}", op, operand)
+                writeln!(f, "   {} {}", op, operand)
             }
             Instruction::AllocateStack(n) => {
-                unimplemented!()
+                writeln!(f, "   subq ${}, %rsp ", n)
             }
             Instruction::Ret => {
-                write!(f, "ret")
+                writeln!(f, "   movq %rbp, %rsp")?;
+                writeln!(f, "   popq %rbp")?;
+                writeln!(f, "   ret")
             }
         }
     }

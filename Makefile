@@ -13,7 +13,7 @@ test_cargo:
 
 .PHONY: test_compiler
 test_compiler: .tests jcc
-	@.tests/test_compiler ./driver --chapter 2 --stage tacky
+	@.tests/test_compiler ./driver --chapter 2
 
 .PHONY: test
 test: test_compiler
