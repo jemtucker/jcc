@@ -1,4 +1,4 @@
-use crate::jcc::{asm, CodeGenerator};
+use crate::jcc::asm;
 
 use super::instruction::Instruction;
 
@@ -22,10 +22,6 @@ impl Into<asm::Function> for Function {
             .flat_map(|i| Into::<Vec<asm::Instruction>>::into(i))
             .collect();
 
-        // TODO tidy all this mess up to move all ir/asm stuff into codegen
-        let mut gen = CodeGenerator::new();
-        let instructions = gen.codegen(instr);
-
-        asm::Function::new(self.name, instructions)
+        asm::Function::new(self.name, instr)
     }
 }

@@ -9,8 +9,34 @@ pub struct Function {
 }
 
 impl Function {
+    /// Construct a new `Function` with the given name and set of instructions
     pub fn new(name: String, instructions: Vec<Instruction>) -> Function {
         Function { name, instructions }
+    }
+
+    /// Prepend the specified `instructions` onto the start of this `Function`
+    pub fn prepend(self, instructions: Vec<Instruction>) -> Function {
+        Function {
+            name: self.name,
+            instructions: instructions
+                .into_iter()
+                .chain(self.instructions.into_iter())
+                .collect(),
+        }
+    }
+
+    pub fn map<F: FnMut(Instruction) -> Instruction>(self, f: F) -> Function {
+        Function {
+            name: self.name,
+            instructions: self.instructions.into_iter().map(f).collect(),
+        }
+    }
+
+    pub fn flat_map<F: FnMut(Instruction) -> Vec<Instruction>>(self, f: F) -> Function {
+        Function {
+            name: self.name,
+            instructions: self.instructions.into_iter().flat_map(f).collect(),
+        }
     }
 }
 
