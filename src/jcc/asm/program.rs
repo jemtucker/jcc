@@ -11,6 +11,12 @@ impl Program {
     pub fn new(entrypoint: Function) -> Program {
         Program { entrypoint }
     }
+
+    pub fn map<F: FnMut(Function) -> Function>(self, mut f: F) -> Program {
+        Program {
+            entrypoint: f(self.entrypoint),
+        }
+    }
 }
 
 impl Display for Program {
